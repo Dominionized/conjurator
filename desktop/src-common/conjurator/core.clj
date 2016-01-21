@@ -31,9 +31,15 @@
 (defscreen main-screen
   :on-show
   (fn [screen entities]
-    (update! screen :renderer (stage))
-    (let [gab-ganon (assoc (texture "gabganon.png") :x 100 :y 100 :player? true)]
-      [gab-ganon]))
+    (update! screen :renderer (stage) :camera (orthographic))
+    (let [gab-ganon (assoc (texture "gabganon.png") :x 100 :y 100 :player? true)
+          background (assoc (texture "background.png") :width 800)]
+      [background gab-ganon]))
+
+  :on-resize
+  (fn [screen entities]
+    (height! screen 400)
+    (width! screen 800))
 
   :on-render
   (fn [screen entities]
