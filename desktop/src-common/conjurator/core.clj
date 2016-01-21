@@ -1,11 +1,10 @@
 (ns conjurator.core
   (:require [play-clj.core :refer :all]
             [play-clj.ui :refer :all]
-            [play-clj.g2d :refer :all]))
+            [play-clj.g2d :refer :all]
+            [conjurator.utils :as u]))
 
 (declare update-player-position)
-
-(def player-speed 10)
 
 (defn- get-direction [keycode]
   (cond
@@ -22,10 +21,10 @@
     (let [old-x (:x entity)
           old-y (:y entity)]
       (case direction
-        :left (assoc entity :x (- old-x player-speed))
-        :right (assoc entity :x (+ old-x player-speed))
-        :up (assoc entity :y (+ old-y player-speed))
-        :down (assoc entity :y (- old-y player-speed))))
+        :left (assoc entity :x (- old-x u/player-speed))
+        :right (assoc entity :x (+ old-x u/player-speed))
+        :up (assoc entity :y (+ old-y u/player-speed))
+        :down (assoc entity :y (- old-y u/player-speed))))
     entity))
 
 (defscreen main-screen
