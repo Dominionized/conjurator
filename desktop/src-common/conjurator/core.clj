@@ -4,7 +4,7 @@
             [play-clj.g2d :refer :all]
             [conjurator.utils :as u]))
 
-(declare update-player-position)
+(declare update-player-position update-physics)
 
 (defn- get-direction [keycode]
   (cond
@@ -27,12 +27,19 @@
         :down (assoc entity :y (- old-y u/player-speed))))
     entity))
 
+(defn- update-physics [entity]
+  (if (:player? entity)
+    (do
+      (println entity)
+      (assoc entity :y (- (:y entity) 1)))
+    entity))
+
 (defscreen main-screen
   :on-show
   (fn [screen entities]
     (update! screen :renderer (stage) :camera (orthographic))
     (let [gab-ganon (assoc (texture "gabganon.png") :x 100 :y 100 :player? true)
-          background (assoc (texture "background.png") :width 800)]
+          background (assoc (texture "background.png") :width 800 :background? true)]
       [background gab-ganon]))
 
   :on-resize
@@ -43,7 +50,9 @@
   :on-render
   (fn [screen entities]
     (clear!)
-    (render! screen entities))
+    (->> entities
+         (map update-physics)
+         (render! screen)))
 
   :on-key-down
   (fn [screen entities]
