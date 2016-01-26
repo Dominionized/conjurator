@@ -4,6 +4,8 @@
             [play-clj.g2d :refer :all]
             [conjurator.utils :as u]))
 
+(use 'clojure.pprint)
+
 (declare update-player-position update-physics)
 
 (defn- get-direction [keycode]
@@ -29,18 +31,24 @@
 
 (defn- update-physics [entity]
   (if (:player? entity)
-    (do
-      (println entity)
-      (assoc entity :y (- (:y entity) 1)))
+      (assoc entity :y (- (:y entity) 1))
     entity))
+
+(defn- update-fps-counter [entities]
+  (map (fn [{fps? :fps? :as ent}]
+         (if fps?
+           (doto ent (label! set-text (str (game :fps))))
+           ent))
+       entities))
 
 (defscreen main-screen
   :on-show
   (fn [screen entities]
     (update! screen :renderer (stage) :camera (orthographic))
     (let [gab-ganon (assoc (texture "gabganon.png") :x 100 :y 100 :player? true)
-          background (assoc (texture "background.png") :width 800 :background? true)]
-      [background gab-ganon]))
+          background (assoc (texture "background.png") :width 800 :background? true)
+          fps-counter (assoc (label "0" u/fps-counter-color) :fps? true)]
+      [background gab-ganon fps-counter]))
 
   :on-resize
   (fn [screen entities]
@@ -50,13 +58,14 @@
   :on-render
   (fn [screen entities]
     (clear!)
+    (println (game :fps))
     (->> entities
          (map update-physics)
+         (update-fps-counter)
          (render! screen)))
 
   :on-key-down
   (fn [screen entities]
-    (println (str "key down : " (:key screen)))
     (let [keycode (:key screen)
           direction (get-direction keycode)]
     (cond
