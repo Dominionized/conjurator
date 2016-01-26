@@ -59,7 +59,6 @@
   :on-render
   (fn [screen entities]
     (clear!)
-    (println (game :fps))
     (->> entities
          (map update-physics)
          (update-fps-counter)
@@ -72,8 +71,6 @@
     (cond
       ;; Mouvement du personnage
       direction (move-player direction entities)))))
-
-:on-key-up
 
 (defgame conjurator-game
   :on-create
