@@ -2,10 +2,10 @@
   (:require [play-clj.core :refer :all]
             [play-clj.ui :refer :all]
             [play-clj.g2d :refer :all]
+            [play-clj.core :refer :all]
             [conjurator.utils :as u]))
 
 (declare update-player-position update-physics)
-
 (defn- get-direction [keycode]
   (cond
     (= keycode (key-code :dpad-up)) :up
@@ -37,6 +37,7 @@
 (defscreen main-screen
   :on-show
   (fn [screen entities]
+    (println (+ 2 2))
     (update! screen :renderer (stage) :camera (orthographic))
     (let [gab-ganon (assoc (texture "gabganon.png") :x 100 :y 100 :player? true)
           background (assoc (texture "background.png") :width 800 :background? true)]
@@ -63,9 +64,12 @@
       ;; Mouvement du personnage
       direction (move-player direction entities)))))
 
+:on-key-up
+
 (defgame conjurator-game
   :on-create
   (fn [this]
+    (music "music/YoshiTheme.mp3" :play)
     (set-screen! this main-screen)))
 
 ;; (app! :post-runnable #(set-screen! conjurator-game main-screen))
