@@ -44,12 +44,12 @@
 (defscreen main-screen
   :on-show
   (fn [screen entities]
-    (println (+ 2 2))
     (update! screen :renderer (stage) :camera (orthographic))
-    (let [gab-ganon (assoc (texture "gabganon.png") :x 100 :y 100 :player? true)
-          background (assoc (texture "background.png") :width 800 :background? true)
-          fps-counter (assoc (label "0" u/fps-counter-color) :fps? true)]
-      [background gab-ganon fps-counter]))
+    (let [gab-ganon (assoc (texture "images/gabganon.png") :x 100 :y 100 :player? true)
+          background (assoc (texture "images/background.png") :width 800 :background? true)
+          fps-counter (assoc (label "0" u/fps-counter-color) :fps? true)
+          floor (assoc (texture "images/grass_block.png") :width 800 :floor? true)]
+      [background floor gab-ganon fps-counter]))
 
   :on-resize
   (fn [screen entities]
