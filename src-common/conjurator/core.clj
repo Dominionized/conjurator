@@ -7,7 +7,7 @@
 
 (use 'clojure.pprint)
 
-(declare update-player-position update-physics reset-accel update-input fucking-print-player)
+(declare update-accel update-physics reset-accel update-input fucking-print-player)
 
 (defn- get-direction []
   (cond
@@ -18,13 +18,9 @@
     :else nil))
 
 (defn- move-player [direction entities]
-  (map #(update-player-position direction %) entities))
+  (map #(update-accel direction %) entities))
 
-;;(move-player :right [{:player? true :x-accel 0}])
-
-;;(update-player-position :right {:player? true})
-
-(defn- update-player-position [direction entity]
+(defn- update-accel [direction entity]
   (if (:player? entity)
     (case direction
       :left (assoc entity :x-accel (- 0 u/accel))
