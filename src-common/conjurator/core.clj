@@ -7,32 +7,48 @@
 
 (use 'clojure.pprint)
 
-(declare update-player-position update-physics)
-(defn- get-direction [keycode]
+(declare update-player-position update-physics reset-accel update-input fucking-print-player)
+
+(defn- get-direction []
   (cond
-    (= keycode (key-code :dpad-up)) :up
-    (= keycode (key-code :dpad-down)) :down
-    (= keycode (key-code :dpad-left)) :left
-    (= keycode (key-code :dpad-right)) :right))
+    (key-pressed? :dpad-up) :up
+    (key-pressed? :dpad-down) :down
+    (key-pressed? :dpad-left) :left
+    (key-pressed? :dpad-right) :right
+    :else nil))
 
 (defn- move-player [direction entities]
   (map #(update-player-position direction %) entities))
 
+;;(move-player :right [{:player? true :x-accel 0}])
+
+;;(update-player-position :right {:player? true})
+
 (defn- update-player-position [direction entity]
   (if (:player? entity)
-    (let [old-x (:x entity)
-          old-y (:y entity)]
-      (case direction
-        :left (assoc entity :x (- old-x u/player-speed))
-        :right (assoc entity :x (+ old-x u/player-speed))
-        :up (assoc entity :y (+ old-y u/player-speed))
-        :down (assoc entity :y (- old-y u/player-speed))))
+    (case direction
+      :left (assoc entity :x-accel (- 0 u/accel))
+      :right (assoc entity :x-accel u/accel)
+      entity)
     entity))
+
+(defn- reset-accel [entity]
+  (assoc entity :x-accel 0))
 
 (defn- update-physics [entity]
   (if (:player? entity)
-      (assoc entity :y (- (:y entity) 1))
-    entity))
+      (-> entity
+          (assoc :x-spd (+ (:x-spd entity) (:x-accel entity)))
+          (assoc :x (+ (:x entity) (:x-spd entity)))
+          (reset-accel))
+      entity))
+
+(defn- update-input [entities]
+  (let [direction (get-direction)]
+    (println direction)
+    (cond
+      direction (move-player direction entities)
+      :else entities)))
 
 (defn- update-fps-counter [entities]
   (map (fn [{fps? :fps? :as ent}]
@@ -41,11 +57,15 @@
            ent))
        entities))
 
+(defn- fucking-print-player [entities]
+  (pprint (filter #(:player? %) entities))
+  entities)
+
 (defscreen main-screen
   :on-show
   (fn [screen entities]
     (update! screen :renderer (stage) :camera (orthographic))
-    (let [gab-ganon (assoc (texture "images/gabganon.png") :x 100 :y 100 :player? true)
+    (let [gab-ganon (assoc (texture "images/gabganon.png") :x 20 :y 20 :x-accel 0 :x-spd 0 :player? true)
           background (assoc (texture "images/background.png") :width 800 :background? true)
           fps-counter (assoc (label "0" u/fps-counter-color) :fps? true)
           floor (assoc (texture "images/grass_block.png") :width 800 :floor? true)]
@@ -60,17 +80,12 @@
   (fn [screen entities]
     (clear!)
     (->> entities
+         (update-input)
+         (fucking-print-player)
          (map update-physics)
+         (fucking-print-player)
          (update-fps-counter)
-         (render! screen)))
-
-  :on-key-down
-  (fn [screen entities]
-    (let [keycode (:key screen)
-          direction (get-direction keycode)]
-    (cond
-      ;; Mouvement du personnage
-      direction (move-player direction entities)))))
+         (render! screen))))
 
 (defgame conjurator-game
   :on-create
@@ -78,4 +93,6 @@
     (music "music/YoshiTheme.mp3" :play)
     (set-screen! this main-screen)))
 
-;; (app! :post-runnable #(set-screen! conjurator-game main-screen))
+;;(app! :post-runnable #(set-screen! conjurator-game main-screen))
+
+
