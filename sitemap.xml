@@ -2,8 +2,14 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>/</loc>
+    <loc>http://dominionized.github.io/conjurator/</loc>
+    <lastmod>2016-01-28T15:53:55-05:00</lastmod>
     <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://dominionized.github.io/conjurator/post/28_janvier/</loc>
+    <lastmod>2016-01-28T15:53:55-05:00</lastmod>
   </url>
   
 </urlset>
