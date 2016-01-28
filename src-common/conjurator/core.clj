@@ -7,7 +7,7 @@
 
 (use 'clojure.pprint)
 
-(declare update-accel update-physics reset-accel update-input fucking-print-player)
+(declare update-accel update-physics reset-accel update-input fucking-print-player update-player-speed apply-ground-resistance)
 
 (defn- get-direction []
   (cond
@@ -23,7 +23,7 @@
 (defn- update-accel [direction entity]
   (if (:player? entity)
     (case direction
-      :left (assoc entity :x-accel (- 0 u/accel))
+      :left (assoc entity :x-accel (- u/accel))
       :right (assoc entity :x-accel u/accel)
       entity)
     entity))
@@ -31,13 +31,29 @@
 (defn- reset-accel [entity]
   (assoc entity :x-accel 0))
 
-(defn- update-physics [entity]
-  (if (:player? entity)
+(defn- update-physics [{player? :player? :as entity}]
+  (if player?
+    (let [curr-x-spd (:x-spd entity)
+          x-accel (:x-accel entity)
+          old-x (:x entity)]
       (-> entity
-          (assoc :x-spd (+ (:x-spd entity) (:x-accel entity)))
-          (assoc :x (+ (:x entity) (:x-spd entity)))
-          (reset-accel))
+          (update-player-speed x-accel)
+          (apply-ground-resistance)
+          (assoc :x (+ old-x curr-x-spd))
+          (reset-accel)))
       entity))
+
+(defn- update-player-speed [{curr-x-spd :x-spd :as player} x-accel]
+  (cond
+    (> curr-x-spd u/max-player-speed) (assoc player :x-spd u/max-player-speed)
+    (< curr-x-spd (- u/max-player-speed)) (assoc player :x-spd (- u/max-player-speed))
+    :else (assoc player :x-spd (+ curr-x-spd x-accel))))
+
+(defn- apply-ground-resistance [{:keys [x-spd] :as player}]
+  (cond
+    (pos? x-spd) (assoc player :x-spd (- x-spd u/ground-resistance))
+    (neg? x-spd) (assoc player :x-spd (+ x-spd u/ground-resistance))
+    :else player))
 
 (defn- update-input [entities]
   (let [direction (get-direction)]
@@ -61,10 +77,10 @@
   :on-show
   (fn [screen entities]
     (update! screen :renderer (stage) :camera (orthographic))
-    (let [gab-ganon (assoc (texture "images/gabganon.png") :x 20 :y 20 :x-accel 0 :x-spd 0 :player? true)
+    (let [gab-ganon (assoc (texture "images/gabganon.png") :width 50 :height 50 :x 20 :y 20 :x-accel 0 :x-spd 0 :player? true)
           background (assoc (texture "images/background.png") :width 800 :background? true)
           fps-counter (assoc (label "0" u/fps-counter-color) :fps? true)
-          floor (assoc (texture "images/grass_block.png") :width 800 :floor? true)]
+          floor (assoc (texture "images/grass_block.png") :width 800 :height 20 :floor? true)]
       [background floor gab-ganon fps-counter]))
 
   :on-resize

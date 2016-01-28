@@ -2,7 +2,8 @@
   (:require [play-clj.core :refer :all]))
 
 (def player-speed 10)
-(def max-speed 20)
-(def accel 1)
+(def max-player-speed 7)
+(def ground-resistance 0.5)
+(def accel 2)
 
 (def fps-counter-color (color :black))
