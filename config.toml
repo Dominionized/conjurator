@@ -1,35 +1,35 @@
 # Site settings
 baseurl = ""
-languageCode = "en-us"
-title = "Hugo Cactus Theme"
+languageCode = "fr-CA"
+title = "Cucurbitacées"
 theme = "hugo-cactus-theme"
 # Enter your tracking code to enable Google Analytics
 googleAnalytics = ""
 # Disable comments by leaving disqusShortname empty
-disqusShortname = "spf13"
+disqusShortname = ""
 
 [params]
-	name = "Mr. Hugo"
-	description = "Describe your website"
-	bio = "Blogger - Programmer - Gopher"
+	name = "Cucurbitacées"
+	description = ""
+	bio = "L'expérience d'un jeu avec le langage Clojure"
 	# Enter optionally your twitter account
-	twitter = "Your Twitter account"
-	enableRSS = true
+	twitter = ""
+	enableRSS = false
 
 	# The variables below are optionally too and can be used to
 	# translate or customize each string of the theme.
 
 	# Navigation links
-	home = ""
-	about = ""
+	home = "Accueil"
+	about = "À propos"
 	subscribe = ""
 	# Pagination links
-	olderPosts = ""
-	newerPosts = ""
-	readMore = ""
+	olderPosts = "Avancer"
+	newerPosts = "Reculer"
+	readMore = "En savoir plus"
 	copyright = ""
 	# Sharing options and author information in posts
-	aboutAuthor = "I'm an enthusiastic gopher."
+	aboutAuthor = ""
 	tweet = ""
 	share = ""
 	# 404 page
