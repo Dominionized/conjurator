@@ -1,5 +1,5 @@
 # Site settings
-baseurl = ""
+baseurl = "http://dominionized.github.io/conjurator/"
 languageCode = "fr-CA"
 title = "Cucurbitacées"
 theme = "hugo-cactus-theme"
