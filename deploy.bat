@@ -1,5 +1,4 @@
 @echo off
-hugo
 git add -A
 git commit
 git push

@@ -1,5 +1,4 @@
 #!/bin/bash
-hugo
 git add -A
 git commit
 git push
