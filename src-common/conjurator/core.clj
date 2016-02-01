@@ -7,47 +7,72 @@
 
 (use 'clojure.pprint)
 
-(declare update-accel update-physics reset-accel update-input fucking-print-player update-player-speed apply-ground-resistance)
+(declare update-accel update-physics reset-accel update-input fucking-print-player update-horizontal-player-speed update-vertical-player-speed apply-ground-resistance)
 
 (defn- get-direction []
   (cond
-    (key-pressed? :dpad-up) :up
-    (key-pressed? :dpad-down) :down
     (key-pressed? :dpad-left) :left
     (key-pressed? :dpad-right) :right
     :else nil))
 
-(defn- move-player [direction entities]
-  (map #(update-accel direction %) entities))
+(defn- jumping? []
+  (key-pressed? :dpad-up))
 
-(defn- update-accel [direction entity]
+(defn- move-player-x [entities]
+  (if-let [direction (get-direction)]
+    (map #(update-accel direction u/accel %) entities)
+    entities))
+
+(defn- update-accel [direction factor entity]
   (if (:player? entity)
     (case direction
-      :left (assoc entity :x-accel (- u/accel))
-      :right (assoc entity :x-accel u/accel)
+      :left (assoc entity :x-accel (- factor))
+      :right (assoc entity :x-accel factor)
+      :up (assoc entity :y-accel factor)
+      :down (assoc entity :y-accel (- factor))
       entity)
     entity))
 
+(defn- update-jumping [entities]
+  (if (jumping?)
+    (map #(update-accel :up u/jump-accel %) entities)
+    entities))
+
 (defn- reset-accel [entity]
-  (assoc entity :x-accel 0))
+  (assoc entity :x-accel 0 :y-accel 0))
+
+(defn- TEMP-prevent-move [ent]
+  (if (< (:y ent) 0)
+    (assoc ent :y 0)
+    ent))
 
 (defn- update-physics [{player? :player? :as entity}]
   (if player?
     (let [curr-x-spd (:x-spd entity)
+          curr-y-spd (:y-spd entity)
           x-accel (:x-accel entity)
-          old-x (:x entity)]
+          y-accel (:y-accel entity)
+          old-x (:x entity)
+          old-y (:y entity)]
       (-> entity
-          (update-player-speed x-accel)
+          (update-horizontal-player-speed x-accel)
+          (update-vertical-player-speed y-accel)
+          (update-vertical-player-speed u/gravity-accel)
           (apply-ground-resistance)
           (assoc :x (+ old-x curr-x-spd))
+          (assoc :y (+ old-y curr-y-spd))
+          (TEMP-prevent-move)
           (reset-accel)))
       entity))
 
-(defn- update-player-speed [{curr-x-spd :x-spd :as player} x-accel]
+(defn- update-horizontal-player-speed [{curr-x-spd :x-spd :as player} x-accel]
   (cond
     (> curr-x-spd u/max-player-speed) (assoc player :x-spd u/max-player-speed)
     (< curr-x-spd (- u/max-player-speed)) (assoc player :x-spd (- u/max-player-speed))
     :else (assoc player :x-spd (+ curr-x-spd x-accel))))
+
+(defn- update-vertical-player-speed [{curr-y-spd :y-spd :as player} y-accel]
+  (assoc player :y-spd (+ curr-y-spd y-accel)))
 
 (defn- apply-ground-resistance [{:keys [x-spd] :as player}]
   (cond
@@ -56,11 +81,9 @@
     :else player))
 
 (defn- update-input [entities]
-  (let [direction (get-direction)]
-    (println direction)
-    (cond
-      direction (move-player direction entities)
-      :else entities)))
+  (->> entities
+        (move-player-x)
+        (update-jumping)))
 
 (defn- update-fps-counter [entities]
   (map (fn [{fps? :fps? :as ent}]
@@ -77,7 +100,7 @@
   :on-show
   (fn [screen entities]
     (update! screen :renderer (stage) :camera (orthographic))
-    (let [gab-ganon (assoc (texture "images/gabganon.png") :width 50 :height 50 :x 20 :y 20 :x-accel 0 :x-spd 0 :player? true)
+    (let [gab-ganon (assoc (texture "images/gabganon.png") :width 50 :height 50 :x 20 :y 20 :x-accel 0 :y-accel 0 :x-spd 0 :y-spd 0 :player? true)
           background (assoc (texture "images/background.png") :width 800 :background? true)
           fps-counter (assoc (label "0" u/fps-counter-color) :fps? true)
           floor (assoc (texture "images/grass_block.png") :width 800 :height 20 :floor? true)]
