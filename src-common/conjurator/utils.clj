@@ -9,3 +9,6 @@
 (def gravity-accel -0.1)
 
 (def fps-counter-color (color :black))
+
+;; Keys
+(def jump-key :x)

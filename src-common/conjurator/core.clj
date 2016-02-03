@@ -15,8 +15,8 @@
     (key-pressed? :dpad-right) :right
     :else nil))
 
-(defn- jumping? []
-  (key-pressed? :dpad-up))
+(defn- jumping-key-pressed? []
+  (key-pressed? :x))
 
 (defn- move-player-x [entities]
   (if-let [direction (get-direction)]
@@ -34,26 +34,18 @@
     entity))
 
 (defn- update-jumping [entities]
-  (if (jumping?)
+  (if (jumping-key-pressed?)
     (map #(update-accel :up u/jump-accel %) entities)
     entities))
 
 (defn- reset-accel [entity]
   (assoc entity :x-accel 0 :y-accel 0))
 
-(defn- TEMP-prevent-move [ent]
-  (if (< (:y ent) 0)
-    (assoc ent :y 0)
-    ent))
-
 (defn- update-physics [{player? :player? :as entity}]
   (if player?
-    (let [curr-x-spd (:x-spd entity)
-          curr-y-spd (:y-spd entity)
-          x-accel (:x-accel entity)
-          y-accel (:y-accel entity)
-          old-x (:x entity)
-          old-y (:y entity)]
+    (let [curr-x-spd (:x-spd entity), curr-y-spd (:y-spd entity)
+          x-accel (:x-accel entity), y-accel (:y-accel entity)
+          old-x (:x entity), old-y (:y entity)]
       (-> entity
           (update-horizontal-player-speed x-accel)
           (update-vertical-player-speed y-accel)
@@ -61,7 +53,6 @@
           (apply-ground-resistance)
           (assoc :x (+ old-x curr-x-spd))
           (assoc :y (+ old-y curr-y-spd))
-          (TEMP-prevent-move)
           (reset-accel)))
       entity))
 
