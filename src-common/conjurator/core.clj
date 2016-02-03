@@ -18,6 +18,9 @@
 (defn- jumping-key-pressed? []
   (key-pressed? :x))
 
+(defn- assoc-can-jump [entity]
+  (assoc entity :can-jump? (= 0 (:y entity))))
+
 (defn- move-player-x [entities]
   (if-let [direction (get-direction)]
     (map #(update-accel direction u/accel %) entities)
@@ -34,18 +37,23 @@
     entity))
 
 (defn- update-jumping [entities]
-  (if (jumping-key-pressed?)
+  (if (and (jumping-key-pressed?)
+           (:can-jump? (first (filter :player? entities))))
     (map #(update-accel :up u/jump-accel %) entities)
     entities))
+
+(defn- TEMP-prevent-move [entity]
+  (if (< (:y entity) 0) (assoc entity :y 0 :y-spd 0)
+      entity))
 
 (defn- reset-accel [entity]
   (assoc entity :x-accel 0 :y-accel 0))
 
 (defn- update-physics [{player? :player? :as entity}]
   (if player?
-    (let [curr-x-spd (:x-spd entity), curr-y-spd (:y-spd entity)
-          x-accel (:x-accel entity), y-accel (:y-accel entity)
-          old-x (:x entity), old-y (:y entity)]
+    (let [{curr-x-spd :x-spd curr-y-spd :y-spd
+           x-accel :x-accel y-accel :y-accel
+           old-x :x old-y :y} entity]
       (-> entity
           (update-horizontal-player-speed x-accel)
           (update-vertical-player-speed y-accel)
@@ -53,6 +61,8 @@
           (apply-ground-resistance)
           (assoc :x (+ old-x curr-x-spd))
           (assoc :y (+ old-y curr-y-spd))
+          (TEMP-prevent-move)
+          (assoc-can-jump)
           (reset-accel)))
       entity))
 
@@ -91,7 +101,7 @@
   :on-show
   (fn [screen entities]
     (update! screen :renderer (stage) :camera (orthographic))
-    (let [gab-ganon (assoc (texture "images/gabganon.png") :width 50 :height 50 :x 20 :y 20 :x-accel 0 :y-accel 0 :x-spd 0 :y-spd 0 :player? true)
+    (let [gab-ganon (assoc (texture "images/gabganon.png") :width 50 :height 50 :x 20 :y 20 :x-accel 0 :y-accel 0 :x-spd 0 :y-spd 0 :player? true :can-jump? true)
           background (assoc (texture "images/background.png") :width 800 :background? true)
           fps-counter (assoc (label "0" u/fps-counter-color) :fps? true)
           floor (assoc (texture "images/grass_block.png") :width 800 :height 20 :floor? true)]
