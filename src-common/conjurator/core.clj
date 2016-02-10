@@ -13,10 +13,14 @@
          reset-accel
          check-inputs
          fucking-print-player
-         update-horizontal-player-speed
-         update-vertical-player-speed
+         update-x-player-speed
+         update-y-player-speed
          apply-ground-resistance
          get-touching-ground-tile)
+
+(defn- print+ret [o]
+  (println o)
+  o)
 
 (defn- get-direction []
   (cond
@@ -65,30 +69,36 @@
 (defn- reset-accel [entity]
   (assoc entity :x-accel 0 :y-accel 0))
 
+(defn- update-player-position [player [old-x old-y] [x-spd y-spd]]
+  (-> player
+      (assoc :x (+ old-x x-spd))
+      (assoc :y (+ old-y y-spd))))
+
 (defn- update-physics [{player? :player? :as entity}]
   (if player?
     (let [{curr-x-spd :x-spd curr-y-spd :y-spd
            x-accel :x-accel y-accel :y-accel
            old-x :x old-y :y} entity]
       (-> entity
-          (update-horizontal-player-speed x-accel)
-          (update-vertical-player-speed y-accel)
-          (update-vertical-player-speed u/gravity-accel)
+          (update-x-player-speed x-accel)
+          (update-y-player-speed y-accel)
+          (update-y-player-speed u/gravity-accel)
           (apply-ground-resistance)
-          (assoc :x (+ old-x curr-x-spd))
-          (assoc :y (+ old-y curr-y-spd))
+
+          (update-player-position [old-x old-y] [curr-x-spd curr-y-spd])
+
           (TEMP-prevent-move)
           (assoc-can-jump)
           (reset-accel)))
       entity))
 
-(defn- update-horizontal-player-speed [{curr-x-spd :x-spd :as player} x-accel]
+(defn- update-x-player-speed [{curr-x-spd :x-spd :as player} x-accel]
   (cond
     (> curr-x-spd u/max-player-speed) (assoc player :x-spd u/max-player-speed)
     (< curr-x-spd (- u/max-player-speed)) (assoc player :x-spd (- u/max-player-speed))
     :else (assoc player :x-spd (+ curr-x-spd x-accel))))
 
-(defn- update-vertical-player-speed [{curr-y-spd :y-spd :as player} y-accel]
+(defn- update-y-player-speed [{curr-y-spd :y-spd :as player} y-accel]
   (assoc player :y-spd (+ curr-y-spd y-accel)))
 
 (defn- apply-ground-resistance [{:keys [x-spd] :as player}]
@@ -114,8 +124,10 @@
   (let [{player-x :x player-y :y player-width :width player-height :height} player]
     (->> entities
          (filter #(:floor? %))
+         (print+ret)
          (filter (fn [ent]
-                   (and (= player-y (+ (:y ent) (:height ent))))))
+                   (and (= player-y (+ (:y ent) (:height ent) 1)))))
+         (print+ret)
          (first)
          (println)
          (identity))
