@@ -2,12 +2,21 @@
   (:require [play-clj.core :refer :all]
             [play-clj.ui :refer :all]
             [play-clj.g2d :refer :all]
-            [play-clj.core :refer :all]
-            [conjurator.utils :as u]))
+            [conjurator.utils :as u]
+            [conjurator.entities :as e]))
 
 (use 'clojure.pprint)
 
-(declare update-accel update-physics reset-accel update-input fucking-print-player update-horizontal-player-speed update-vertical-player-speed apply-ground-resistance)
+(declare update-accel
+         update-accel-player
+         update-physics
+         reset-accel
+         check-inputs
+         fucking-print-player
+         update-horizontal-player-speed
+         update-vertical-player-speed
+         apply-ground-resistance
+         get-touching-ground-tile)
 
 (defn- get-direction []
   (cond
@@ -15,31 +24,38 @@
     (key-pressed? :dpad-right) :right
     :else nil))
 
+(defn- get-player
+  [entities]
+  (first (filter :player? entities)))
+
 (defn- jumping-key-pressed? []
   (key-pressed? :x))
 
 (defn- assoc-can-jump [entity]
   (assoc entity :can-jump? (= 0 (:y entity))))
 
-(defn- move-player-x [entities]
+(defn- update-x-movement-accel [entities]
   (if-let [direction (get-direction)]
-    (map #(update-accel direction u/accel %) entities)
+    (map #(update-accel-player direction u/accel %) entities)
     entities))
 
-(defn- update-accel [direction factor entity]
+(defn- update-accel-player [direction factor entity]
   (if (:player? entity)
-    (case direction
-      :left (assoc entity :x-accel (- factor))
-      :right (assoc entity :x-accel factor)
-      :up (assoc entity :y-accel factor)
-      :down (assoc entity :y-accel (- factor))
-      entity)
+    (update-accel direction factor entity)
     entity))
 
-(defn- update-jumping [entities]
+(defn- update-accel [direction factor entity]
+  (case direction
+    :left (assoc entity :x-accel (- factor))
+    :right (assoc entity :x-accel factor)
+    :up (assoc entity :y-accel factor)
+    :down (assoc entity :y-accel (- factor))
+    entity))
+
+(defn- update-jumping-accel [entities]
   (if (and (jumping-key-pressed?)
-           (:can-jump? (first (filter :player? entities))))
-    (map #(update-accel :up u/jump-accel %) entities)
+           (:can-jump? (get-player entities)))
+    (map #(update-accel-player :up u/jump-accel %) entities)
     entities))
 
 (defn- TEMP-prevent-move [entity]
@@ -81,10 +97,10 @@
     (neg? x-spd) (assoc player :x-spd (+ x-spd u/ground-resistance))
     :else player))
 
-(defn- update-input [entities]
+(defn- check-inputs [entities]
   (->> entities
-        (move-player-x)
-        (update-jumping)))
+       (update-x-movement-accel);; TODO Maybe change this ?
+       (update-jumping-accel)))
 
 (defn- update-fps-counter [entities]
   (map (fn [{fps? :fps? :as ent}]
@@ -93,19 +109,33 @@
            ent))
        entities))
 
+(defn- get-touching-ground-tile
+  [player entities]
+  (let [{player-x :x player-y :y player-width :width player-height :height} player]
+    (->> entities
+         (filter #(:floor? %))
+         (filter (fn [ent]
+                   (and (= player-y (+ (:y ent) (:height ent))))))
+         (first)
+         (println)
+         (identity))
+    entities ;; TODO REMOVE THIS
+  ))
+
 (defn- fucking-print-player [entities]
-  (pprint (filter #(:player? %) entities))
+  (pprint (get-player entities))
   entities)
 
 (defscreen main-screen
   :on-show
   (fn [screen entities]
     (update! screen :renderer (stage) :camera (orthographic))
-    (let [gab-ganon (assoc (texture "images/gabganon.png") :width 50 :height 50 :x 20 :y 20 :x-accel 0 :y-accel 0 :x-spd 0 :y-spd 0 :player? true :can-jump? true)
-          background (assoc (texture "images/background.png") :width 800 :background? true)
-          fps-counter (assoc (label "0" u/fps-counter-color) :fps? true)
-          floor (assoc (texture "images/grass_block.png") :width 800 :height 20 :floor? true)]
-      [background floor gab-ganon fps-counter]))
+    (let [gab-ganon (e/create-player)
+          background (e/create-background)
+          fps-counter (e/create-fps-counter)
+          floor (e/create-floor)
+          tile (e/create-tile)]
+      [background floor tile gab-ganon fps-counter]))
 
   :on-resize
   (fn [screen entities]
@@ -116,19 +146,16 @@
   (fn [screen entities]
     (clear!)
     (->> entities
-         (update-input)
-         (fucking-print-player)
+         (check-inputs)
+         (get-touching-ground-tile (get-player entities));; TODO remove this shit
          (map update-physics)
-         (fucking-print-player)
          (update-fps-counter)
          (render! screen))))
 
 (defgame conjurator-game
   :on-create
   (fn [this]
-    (music "music/YoshiTheme.mp3" :play)
+    ;;(music "music/YoshiTheme.mp3" :play)
     (set-screen! this main-screen)))
 
 ;;(app! :post-runnable #(set-screen! conjurator-game main-screen))
-
-
