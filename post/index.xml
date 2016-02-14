@@ -6,8 +6,48 @@
     <description>Recent content in Posts on Cucurbitacées</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>fr-CA</language>
-    <lastBuildDate>Wed, 03 Feb 2016 11:30:21 -0500</lastBuildDate>
+    <lastBuildDate>Sun, 14 Feb 2016 13:33:46 -0500</lastBuildDate>
     <atom:link href="http://dominionized.github.io/conjurator/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>10 février</title>
+      <link>http://dominionized.github.io/conjurator/post/10_fevrier/</link>
+      <pubDate>Sun, 14 Feb 2016 13:33:46 -0500</pubDate>
+      
+      <guid>http://dominionized.github.io/conjurator/post/10_fevrier/</guid>
+      <description>&lt;p&gt;Aujourd&amp;rsquo;hui, nous avons complété la démarche de refactoring et nous avons
+commencé/continué à travailler sur le système de collision avec les
+plate-formes. Ce dernier n&amp;rsquo;est toujours pas au point, et nous avons quelque peu
+de difficultés à le faire fonctionner. Cependant, nous pensons pouvoir y arriver
+pour bientôt.&lt;/p&gt;
+
+&lt;p&gt;Notre jeu reste assez basique, malheureusement. Nous aurions aimé qu&amp;rsquo;il soit un
+peu plus complet, mais nous sommes conscients que nous n&amp;rsquo;aurons pas le temps de
+développer beaucoup plus de fonctionnalités qu&amp;rsquo;un système de collision, à moins
+que nous n&amp;rsquo;accélérions la cadence de développement par un très grand facteur.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>8 février</title>
+      <link>http://dominionized.github.io/conjurator/post/8_fevrier/</link>
+      <pubDate>Mon, 08 Feb 2016 13:25:04 -0500</pubDate>
+      
+      <guid>http://dominionized.github.io/conjurator/post/8_fevrier/</guid>
+      <description>&lt;p&gt;Ajourd&amp;rsquo;hui, nous avons entamé une procédure de refactoring de notre projet, car
+quelques fonctions ne sont pas bien nommées et/ou font trop de fonctionnalités.
+Côté fonctionnalités, elles n&amp;rsquo;ont pas vraiment avancé ; par contre, dès que le
+refactoring sera terminé, nous allons essayer de faire un système de collision
+pour des plate-formes.&lt;/p&gt;
+
+&lt;p&gt;Nous voulons garder le jeu quand même simple car le but de notre projet de
+recherche n&amp;rsquo;est pas de faire un jeu incroyable, mais plutôt d&amp;rsquo;apprendre la
+programmation fonctionnelle à l&amp;rsquo;aide du langage Clojure. Notre projet n&amp;rsquo;est
+qu&amp;rsquo;un jeu car ce type de programme est visuel et se porte bien à une
+présentation telle que celle que nous allons devoir faire à la fin de la session
+(qui, d&amp;rsquo;ailleurs, approche à grands pas).&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>3 février</title>
