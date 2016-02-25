@@ -42,3 +42,9 @@
                         (< x x2)
                         (< y y2)))))
        first))
+
+(defn get-colliding-entity [{:keys [x y width height] :as player} entities]
+  (if-let [coll-ent-left (in-entity? x y entities)]
+    coll-ent-left
+    (when-let [coll-ent-right (in-entity? (+ x (:width player)) y entities)]
+      coll-ent-right)))

@@ -37,7 +37,7 @@
 
 (defn- assoc-can-jump [entity]
   ;; (assoc entity :can-jump? (= 0 (:y entity))))
-  (assoc entity :can-jump? (= 0 (:y-spd entity))))
+  (assoc entity :can-jump? (<= (:y-spd entity) 0)))
 
 (defn- update-x-movement-accel [entities]
   (if-let [direction (get-direction)]
@@ -95,7 +95,7 @@
   (map (fn [{:keys [player?, x y, x-spd y-spd] :as entity}]
          (if (and player?
                   (neg? y-spd))
-           (if-let [colliding-entity (e/in-entity? x y entities)]
+           (if-let [colliding-entity (e/get-colliding-entity entity entities)]
              (assoc entity
                     :y (+ (:y colliding-entity)
                           (:height colliding-entity))
@@ -175,7 +175,6 @@
          check-inputs
          move
          prevent-move
-         (print+ret)
          update-fps-counter
          (render! screen))))
 
