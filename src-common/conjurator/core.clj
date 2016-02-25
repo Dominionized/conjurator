@@ -9,7 +9,7 @@
 
 (declare update-accel
          update-accel-player
-         update-physics
+         move
          reset-accel
          check-inputs
          fucking-print-player
@@ -36,7 +36,8 @@
   (key-pressed? :x))
 
 (defn- assoc-can-jump [entity]
-  (assoc entity :can-jump? (= 0 (:y entity))))
+  ;; (assoc entity :can-jump? (= 0 (:y entity))))
+  (assoc entity :can-jump? (= 0 (:y-spd entity))))
 
 (defn- update-x-movement-accel [entities]
   (if-let [direction (get-direction)]
@@ -69,28 +70,39 @@
 (defn- reset-accel [entity]
   (assoc entity :x-accel 0 :y-accel 0))
 
-(defn- update-player-position [player [old-x old-y] [x-spd y-spd]]
-  (-> player
-      (assoc :x (+ old-x x-spd))
-      (assoc :y (+ old-y y-spd))))
+(defn- move [entities]
+  (map (fn [{:keys [player?] :as entity}]
+         (if player?
+           (let [{curr-x-spd :x-spd curr-y-spd :y-spd
+                  x-accel :x-accel y-accel :y-accel
+                  old-x :x old-y :y} entity]
+             (-> entity
+                 (update-x-player-speed x-accel)
+                 (update-y-player-speed y-accel)
+                 (update-y-player-speed u/gravity-accel)
+                 (apply-ground-resistance)
 
-(defn- update-physics [{player? :player? :as entity}]
-  (if player?
-    (let [{curr-x-spd :x-spd curr-y-spd :y-spd
-           x-accel :x-accel y-accel :y-accel
-           old-x :x old-y :y} entity]
-      (-> entity
-          (update-x-player-speed x-accel)
-          (update-y-player-speed y-accel)
-          (update-y-player-speed u/gravity-accel)
-          (apply-ground-resistance)
+                 (assoc :x (+ old-x curr-x-spd)
+                        :y (+ old-y curr-y-spd))
 
-          (update-player-position [old-x old-y] [curr-x-spd curr-y-spd])
+                 (TEMP-prevent-move)
+                 (assoc-can-jump)
+                 (reset-accel)))
+           entity))
+    entities))
 
-          (TEMP-prevent-move)
-          (assoc-can-jump)
-          (reset-accel)))
-      entity))
+(defn- prevent-move [entities]
+  (map (fn [{:keys [player?, x y, x-spd y-spd] :as entity}]
+         (if (and player?
+                  (neg? y-spd))
+           (if-let [colliding-entity (e/in-entity? x y entities)]
+             (assoc entity
+                    :y (+ (:y colliding-entity)
+                          (:height colliding-entity))
+                    :y-spd 0)
+             entity)
+           entity))
+       entities))
 
 (defn- update-x-player-speed [{curr-x-spd :x-spd :as player} x-accel]
   (cond
@@ -124,12 +136,9 @@
   (let [{player-x :x player-y :y player-width :width player-height :height} player]
     (->> entities
          (filter #(:floor? %))
-         (print+ret)
          (filter (fn [ent]
                    (and (= player-y (+ (:y ent) (:height ent) 1)))))
-         (print+ret)
          (first)
-         (println)
          (identity))
     entities ;; TODO REMOVE THIS
   ))
@@ -146,22 +155,28 @@
           background (e/create-background)
           fps-counter (e/create-fps-counter)
           floor (e/create-floor)
-          tile (e/create-tile)]
-      [background floor tile gab-ganon fps-counter]))
+          tiles (e/create-tiles)]
+      (flatten [background floor tiles gab-ganon fps-counter])))
 
   :on-resize
   (fn [screen entities]
     (height! screen 400)
     (width! screen 800))
 
+  :on-key-down
+  (fn [screen entities]
+    (if (key-pressed? :q)
+      (System/exit 0)))
+
   :on-render
   (fn [screen entities]
     (clear!)
     (->> entities
-         (check-inputs)
-         (get-touching-ground-tile (get-player entities));; TODO remove this shit
-         (map update-physics)
-         (update-fps-counter)
+         check-inputs
+         move
+         prevent-move
+         (print+ret)
+         update-fps-counter
          (render! screen))))
 
 (defgame conjurator-game
