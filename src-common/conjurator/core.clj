@@ -151,11 +151,12 @@
   :on-show
   (fn [screen entities]
     (update! screen :renderer (stage) :camera (orthographic))
+    (update! screen :timeline [])
     (let [gab-ganon (e/create-player)
           background (e/create-background)
           fps-counter (e/create-fps-counter)
           floor (e/create-floor)
-          tiles (e/create-tiles)]
+          tiles (e/create-tiles [20 20] [50 60] [100 250] [400 250])]
       (flatten [background floor tiles gab-ganon fps-counter])))
 
   :on-resize
@@ -165,23 +166,40 @@
 
   :on-key-down
   (fn [screen entities]
-    (if (key-pressed? :q)
-      (System/exit 0)))
+    (cond
+      (= (:key screen) (key-code :q)) (System/exit 0)
+      (= (:key screen) (key-code :p)) (conj entities (assoc (texture "images/gabganon.png")
+                                            :x (rand 800)
+                                            :y (rand 400)
+                                            :width (rand 100)
+                                            :height (rand 100)))))
+
+  :on-touch-dragged
+  (fn [screen entities]
+    (if-not (button-pressed? :right)
+      (conj entities (e/texture-at :gabganon (:input-x screen) (- 400 (:input-y screen)) true))))
+
+  :on-touch-down
+  (fn [screen entities]
+    (if (= (:button screen) (button-code :right))
+      (conj entities (e/grass-at (:input-x screen) (- 400 (:input-y screen))))))
 
   :on-render
   (fn [screen entities]
     (clear!)
-    (->> entities
-         check-inputs
-         move
-         prevent-move
-         update-fps-counter
-         (render! screen))))
+    (->> (if (key-pressed? :r)
+           (rewind! screen 1)
+           (->> entities
+                check-inputs
+                move
+                prevent-move
+                update-fps-counter))
+          (render! screen))))
 
 (defgame conjurator-game
   :on-create
   (fn [this]
-    ;;(music "music/YoshiTheme.mp3" :play)
+    (music "music/YoshiTheme.mp3" :play)
     (set-screen! this main-screen)))
 
 ;;(app! :post-runnable #(set-screen! conjurator-game main-screen))

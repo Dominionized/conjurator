@@ -4,8 +4,14 @@
             [play-clj.ui :refer :all]
             [conjurator.utils :as u]))
 
+(defn get-texture [tex]
+  (case tex
+    :grass (texture "images/grass_block.png")
+    :gabganon (texture "images/gabganon.png")
+    :background (texture "images/background.png")))
+
 (defn create-player []
-  (assoc (texture "images/gabganon.png")
+  (assoc (get-texture :gabganon)
          :width 50 :height 50
          :x 20 :y 20
          :x-accel 0 :y-accel 0
@@ -14,7 +20,7 @@
          :can-jump? true))
 
 (defn create-background []
-  (assoc (texture "images/background.png")
+  (assoc (get-texture :background)
          :width 800
          :background? true))
 
@@ -22,12 +28,20 @@
   (assoc (label "0" u/fps-counter-color) :fps? true))
 
 (defn create-floor []
-  (assoc (texture "images/grass_block.png") :x 0 :y 0 :width 800 :height 20 :floor? true))
+  (assoc (get-texture :grass) :x 0 :y 0 :width 800 :height 20 :floor? true))
 
-(defn create-tiles []
-  (let [grass (texture "images/grass_block.png")]
-    [(assoc grass :x 15 :y 15 :width 30 :height 30 :floor? true)
-     (assoc grass :x 200 :y 30 :width 40 :height 40 :floor? true)]))
+(defn create-tiles [& coords]
+  (for [[x y] coords]
+    (assoc (get-texture :grass) :x x :y y :width 40 :height 40 :floor? true)))
+
+(defn texture-at [tex x y random]
+  (let [size (if random (rand 40) 40)]
+    (assoc (get-texture tex)
+          :x x :y y
+          :width size :height size)))
+
+(defn grass-at [x y]
+  (assoc (texture-at :grass x y false) :floor? true))
 
 (defn in-entity? [x y entities]
   (->> entities
@@ -44,7 +58,9 @@
        first))
 
 (defn get-colliding-entity [{:keys [x y width height] :as player} entities]
-  (if-let [coll-ent-left (in-entity? x y entities)]
-    coll-ent-left
-    (when-let [coll-ent-right (in-entity? (+ x (:width player)) y entities)]
-      coll-ent-right)))
+  (if-let [coll-ent-center (in-entity? (+ x (/ width 2)) y entities)]
+    coll-ent-center
+    (if-let [coll-ent-left (in-entity? x y entities)]
+      coll-ent-left
+      (when-let [coll-ent-right (in-entity? (+ x width) y entities)]
+        coll-ent-right))))
